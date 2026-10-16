@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет — Ремонт Инструмента</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-red: #D32F2F;
+            --color-blue: #0097A7;
+            --color-yellow: #F9A825;
+            --color-green: #43A047;
+            --color-dark: #37474F;
+            --color-background: #ECEFF1;
+            --color-white: #FFFFFF;
+            --color-light-gray: #CFD8DC;
+            --color-text: #263238;
+            --color-text-light: #546E7A;
+
+            --font-heading: 'Oswald', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--color-red) 0%, var(--color-red) 25%,
+                var(--color-blue) 25%, var(--color-blue) 50%,
+                var(--color-yellow) 50%, var(--color-yellow) 75%,
+                var(--color-dark) 75%, var(--color-dark) 100%);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--color-red);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            clip-path: polygon(18% 0%, 100% 0%, 82% 100%, 0% 100%);
+        }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--color-white);
+        }
+
+        .back-link {
+            font-family: var(--font-heading);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--color-text-light);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover { color: var(--color-red); }
+
+        /* ===== LAYOUT ===== */
+        .page {
+            padding: 3rem 0;
+        }
+
+        .panel {
+            background: var(--color-white);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg,
+                var(--color-red) 0%, var(--color-red) 25%,
+                var(--color-blue) 25%, var(--color-blue) 50%,
+                var(--color-yellow) 50%, var(--color-yellow) 75%,
+                var(--color-dark) 75%, var(--color-dark) 100%);
+        }
+
+        .panel-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.35rem;
+        }
+
+        .panel-subtitle {
+            color: var(--color-text-light);
+            font-size: 0.9375rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        .form-group { margin-bottom: 1.25rem; }
+
+        .label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-dark);
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .input {
+            width: 100%;
+            background: var(--color-white);
+            border: 2px solid var(--color-light-gray);
+            padding: 0.9rem 1rem;
+            color: var(--color-text);
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input:hover { border-color: var(--color-text-light); }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--color-red);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.12);
+        }
+
+        .input::placeholder { color: var(--color-text-light); }
+
+        .btn {
+            background: var(--color-red);
+            color: var(--color-white);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            min-height: 56px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #B71C1C;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid var(--color-dark);
+            outline-offset: 2px;
+        }
+
+        .btn:disabled {
+            background: var(--color-light-gray);
+            color: var(--color-text-light);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-text-light);
+            border: 2px solid var(--color-light-gray);
+            width: auto;
+            min-height: auto;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--color-dark);
+            border-color: var(--color-dark);
+            color: var(--color-white);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error {
+            background: rgba(211, 47, 47, 0.08);
+            border-left: 4px solid var(--color-red);
+            color: var(--color-red);
+            padding: 0.9rem 1rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .hint {
+            color: var(--color-text-light);
+            font-size: 0.8125rem;
+            font-weight: 300;
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--color-light-gray);
+        }
+
+        /* ===== CABINET HEAD ===== */
+        .cab-head {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border-top: 4px solid var(--color-blue);
+        }
+
+        .cab-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.375rem, 4vw, 1.75rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            line-height: 1.2;
+        }
+
+        .cab-phone {
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            font-weight: 300;
+        }
+
+        .cab-phone strong {
+            color: var(--color-dark);
+            font-weight: 500;
+        }
+
+        /* ===== ORDERS ===== */
+        .order {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--color-blue);
+            overflow: hidden;
+        }
+
+        .order-top {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .order-num {
+            font-family: var(--font-heading);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.35rem;
+        }
+
+        .order-device {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            line-height: 1.25;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.45rem 0.9rem;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .status-received { background: var(--color-blue); color: var(--color-white); }
+        .status-diagnosing { background: var(--color-yellow); color: var(--color-dark); }
+        .status-repairing { background: var(--color-red); color: var(--color-white); }
+        .status-testing { background: var(--color-dark); color: var(--color-white); }
+        .status-ready { background: var(--color-green); color: var(--color-white); }
+        .status-completed { background: var(--color-light-gray); color: var(--color-text); }
+
+        /* Прогресс-шкала статусов */
+        .steps {
+            display: flex;
+            padding: 0 1.5rem 1.25rem;
+            gap: 0.35rem;
+        }
+
+        .step {
+            flex: 1;
+            height: 5px;
+            background: var(--color-light-gray);
+        }
+
+        .step.done { background: var(--color-green); }
+        .step.current { background: var(--color-red); }
+
+        .order-info {
+            padding: 0 1.5rem 1.5rem;
+            display: grid;
+            gap: 0.25rem;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 1rem;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid var(--color-light-gray);
+        }
+
+        .info-row:last-child { border-bottom: none; }
+
+        .info-label {
+            color: var(--color-text-light);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            color: var(--color-dark);
+            font-weight: 500;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .cost {
+            color: var(--color-red);
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* ===== STATES ===== */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--color-text-light);
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--color-light-gray);
+            fill: none;
+            stroke-width: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-white);
+            border-top: 1px solid var(--color-light-gray);
+            padding: 1.5rem 0;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .footer-text {
+            font-size: 0.8125rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        /* ===== MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .panel { padding: 1.75rem 1.25rem; }
+            .panel::before { width: 5px; }
+
+            .order-top { padding: 1.25rem; }
+            .steps { padding: 0 1.25rem 1rem; }
+            .order-info { padding: 0 1.25rem 1.25rem; }
+
+            .info-row {
+                grid-template-columns: 1fr;
+                gap: 0.15rem;
+            }
+
+            .info-label { font-size: 0.75rem; }
+        }
+
+        @media (max-width: 560px) {
+            .logo { font-size: 1.0625rem; }
+            .logo-icon { width: 36px; height: 36px; }
+            .header-content { flex-wrap: wrap; row-gap: 0.5rem; }
+            .back-link { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top-bar"></div>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21.7 18.6l-6.4-6.4c.5-1.2.7-2.4.6-3.7-.1-1.2-.6-2.4-1.4-3.4l-.5-.5-2.6 2.6 1.3 1.3c.2.2.2.5 0 .7l-1.4 1.4c-.2.2-.5.2-.7 0L9.3 9.3l-2.6 2.6.5.5c1 .8 2.1 1.3 3.4 1.4 1.2.1 2.5-.1 3.7-.6l6.4 6.4c.2.2.5.2.7 0l2.3-2.3c.2-.2.2-.5 0-.7zM3.4 6.3l3.3-3.3c.4-.4 1-.4 1.4 0l2.4 2.4-4.7 4.7-2.4-2.4c-.4-.4-.4-1 0-1.4z"/></svg>
+                    </div>
+                    <span>Ремонт Инструмента</span>
+                </a>
+                <a href="index.html" class="back-link">← На главную</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <div class="container">
+            <div id="root"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2026 Ремонт Бензо и Электро Инструмента. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpUn1ch7sI1vNWnrX4HMG024J3vfmJHXQ",
+            authDomain: "repair-tracker-e8486.firebaseapp.com",
+            databaseURL: "https://repair-tracker-e8486-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "repair-tracker-e8486",
+            storageBucket: "repair-tracker-e8486.firebasestorage.app",
+            messagingSenderId: "967280277566",
+            appId: "1:967280277566:web:bccbba44dc9ecf4ad6396f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const STATUS_LABELS = {
+            received: 'Принят',
+            diagnosing: 'Диагностика',
+            repairing: 'Ремонт',
+            testing: 'Тестирование',
+            ready: 'Готов к выдаче',
+            completed: 'Выдан'
+        };
+
+        const STATUS_ORDER = ['received', 'diagnosing', 'repairing', 'testing', 'ready', 'completed'];
+
+        const SESSION_KEY = 'rt_client_phone';
+        const SESSION_TTL = 12 * 60 * 60 * 1000; // 12 часов
+
+        function App() {
+            const [phone, setPhone] = useState('');
+            const [activePhone, setActivePhone] = useState('');
+            const [orders, setOrders] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [checked, setChecked] = useState(false);
+
+            // Восстановление сессии при загрузке
+            useEffect(() => {
+                try {
+                    const raw = sessionStorage.getItem(SESSION_KEY);
+                    if (!raw) { setChecked(true); return; }
+                    const s = JSON.parse(raw);
+                    if (s && s.phone && typeof s.ts === 'number' && (Date.now() - s.ts) < SESSION_TTL) {
+                        setActivePhone(s.phone);
+                        loadOrders(s.phone);
+                    } else {
+                        sessionStorage.removeItem(SESSION_KEY);
+                    }
+                } catch (e) {
+                    sessionStorage.removeItem(SESSION_KEY);
+                }
+                setChecked(true);
+            }, []);
+
+            async function loadOrders(phoneValue) {
+                setLoading(true);
+                setError('');
+                try {
+                    const snapshot = await db.collection('orders')
+                        .where('phone', '==', phoneValue)
+                        .get();
+
+                    const found = [];
+                    snapshot.forEach(doc => {
+                        found.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Свежие сверху
+                    found.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+                    setOrders(found);
+                } catch (err) {
+                    console.error('Error loading orders:', err);
+                    setError('Не удалось загрузить заказы. Проверьте соединение и попробуйте снова.');
+                    setOrders([]);
+                }
+                setLoading(false);
+            }
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                const value = phone.trim();
+                if (!value) return;
+
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify({ phone: value, ts: Date.now() }));
+                setActivePhone(value);
+                await loadOrders(value);
+            };
+
+            const handleLogout = () => {
+                try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+                setActivePhone('');
+                setOrders([]);
+                setPhone('');
+                setError('');
+            };
+
+            if (!checked) {
+                return <div className="loading"><p>Загрузка…</p></div>;
+            }
+
+            if (!activePhone) {
+                return (
+                    <div className="panel">
+                        <h1 className="panel-title">Личный кабинет</h1>
+                        <p className="panel-subtitle">Введите номер телефона, который указывали при сдаче инструмента в ремонт</p>
+
+                        {error && <div className="error">{error}</div>}
+
+                        <form onSubmit={handleLogin}>
+                            <div className="form-group">
+                                <label className="label" htmlFor="phone">Номер телефона</label>
+                                <input
+                                    id="phone"
+                                    type="tel"
+                                    className="input"
+                                    placeholder="+7 (___) ___-__-__"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+
+                            <button type="submit" className="btn" disabled={loading}>
+                                {loading ? 'Поиск…' : 'Войти'}
+                            </button>
+                        </form>
+
+                        <p className="hint">
+                            Если заказы не находятся, проверьте, что номер введён так же, как при оформлении —
+                            или позвоните нам по телефону +7 (930) 114-07-62.
+                        </p>
+                    </div>
+                );
+            }
+
+            return (
+                <>
+                    <div className="cab-head">
+                        <div>
+                            <h1 className="cab-title">Мои заказы</h1>
+                            <p className="cab-phone">Телефон: <strong>{activePhone}</strong></p>
+                        </div>
+                        <button className="btn btn-ghost" onClick={handleLogout}>Выйти</button>
+                    </div>
+
+                    {loading && (
+                        <div className="loading"><p>Загрузка заказов…</p></div>
+                    )}
+
+                    {error && !loading && (
+                        <div className="empty-state">
+                            <p>{error}</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && orders.length === 0 && (
+                        <div className="empty-state">
+                            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>
+                            <p>По этому номеру заказов не найдено</p>
+                        </div>
+                    )}
+
+                    {!loading && orders.map(order => (
+                        <OrderCard key={order.id} order={order} />
+                    ))}
+                </>
+            );
+        }
+
+        function OrderCard({ order }) {
+            const idx = STATUS_ORDER.indexOf(order.status);
+
+            return (
+                <article className="order">
+                    <div className="order-top">
+                        <div>
+                            <div className="order-num">Заказ #{String(order.id).substring(0, 10)}</div>
+                            <div className="order-device">{order.device || 'Инструмент'}</div>
+                        </div>
+                        <span className={`status-badge status-${order.status}`}>
+                            {STATUS_LABELS[order.status] || order.status}
+                        </span>
+                    </div>
+
+                    {idx >= 0 && (
+                        <div className="steps" aria-hidden="true">
+                            {STATUS_ORDER.map((s, i) => {
+                                let cls = 'step';
+                                if (i < idx) cls += ' done';
+                                else if (i === idx) cls += ' current';
+                                return <span key={s} className={cls}></span>;
+                            })}
+                        </div>
+                    )}
+
+                    <div className="order-info">
+                        {order.issue && (
+                            <div className="info-row">
+                                <span className="info-label">Неисправность</span>
+                                <span className="info-value">{order.issue}</span>
+                            </div>
+                        )}
+
+                        {order.estimatedCost && (
+                            <div className="info-row">
+                                <span className="info-label">Стоимость</span>
+                                <span className="cost">{order.estimatedCost} ₽</span>
+                            </div>
+                        )}
+
+                        {order.notes && (
+                            <div className="info-row">
+                                <span className="info-label">Примечания мастера</span>
+                                <span className="info-value">{order.notes}</span>
+                            </div>
+                        )}
+
+                        {order.createdAt && (
+                            <div className="info-row">
+                                <span className="info-label">Дата приёма</span>
+                                <span className="info-value">{formatDate(order.createdAt)}</span>
+                            </div>
+                        )}
+
+                        {order.updatedAt && (
+                            <div className="info-row">
+                                <span className="info-label">Обновлено</span>
+                                <span className="info-value">{formatDate(order.updatedAt)}</span>
+                            </div>
+                        )}
+                    </div>
+                </article>
+            );
+        }
+
+        function formatDate(value) {
+            try {
+                const d = new Date(value);
+                if (isNaN(d.getTime())) return '';
+                return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            } catch (e) {
+                return '';
+            }
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

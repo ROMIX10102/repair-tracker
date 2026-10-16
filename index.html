@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ремонт Бензо и Электро Инструмента</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-red: #D32F2F;
+            --color-blue: #0097A7;
+            --color-yellow: #F9A825;
+            --color-dark: #37474F;
+            --color-background: #ECEFF1;
+            --color-white: #FFFFFF;
+            --color-light-gray: #CFD8DC;
+            --color-text: #263238;
+            --color-text-light: #546E7A;
+
+            --font-heading: 'Oswald', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--color-red) 0%, var(--color-red) 25%,
+                var(--color-blue) 25%, var(--color-blue) 50%,
+                var(--color-yellow) 50%, var(--color-yellow) 75%,
+                var(--color-dark) 75%, var(--color-dark) 100%);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--color-red);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            clip-path: polygon(18% 0%, 100% 0%, 82% 100%, 0% 100%);
+        }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--color-white);
+        }
+
+        .header-phone {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s ease;
+        }
+
+        .header-phone:hover {
+            color: var(--color-red);
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            position: relative;
+            background: var(--color-white);
+            padding: 3.5rem 0 4rem;
+            overflow: hidden;
+            border-bottom: 1px solid var(--color-light-gray);
+        }
+
+        /* Decorative stripes — NOT behind text */
+        .hero-stripes {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 220px;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .hero-stripe {
+            position: absolute;
+            top: -20%;
+            height: 140%;
+            transform: rotate(18deg);
+            transform-origin: top right;
+        }
+
+        .stripe-1 { right: 0; width: 60px; background: var(--color-red); opacity: 0.15; }
+        .stripe-2 { right: 55px; width: 40px; background: var(--color-blue); opacity: 0.15; }
+        .stripe-3 { right: 100px; width: 28px; background: var(--color-yellow); opacity: 0.15; }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 720px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--color-dark);
+            color: var(--color-white);
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 0.4rem 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 6vw, 3.25rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            line-height: 1.08;
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
+            margin-bottom: 1rem;
+        }
+
+        .hero-title .accent {
+            color: var(--color-red);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2.2vw, 1.25rem);
+            color: var(--color-text-light);
+            font-weight: 300;
+            max-width: 560px;
+        }
+
+        /* Color stripe band under hero text */
+        .stripe-band {
+            display: flex;
+            height: 6px;
+            margin-top: 2rem;
+            max-width: 320px;
+        }
+
+        .stripe-band span {
+            flex: 1;
+        }
+
+        .stripe-band span:nth-child(1) { background: var(--color-red); }
+        .stripe-band span:nth-child(2) { background: var(--color-blue); }
+        .stripe-band span:nth-child(3) { background: var(--color-yellow); }
+        .stripe-band span:nth-child(4) { background: var(--color-dark); }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        /* Big tracking card */
+        .track-card {
+            background: var(--color-white);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+
+        .track-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg,
+                var(--color-red) 0%, var(--color-red) 25%,
+                var(--color-blue) 25%, var(--color-blue) 50%,
+                var(--color-yellow) 50%, var(--color-yellow) 75%,
+                var(--color-dark) 75%, var(--color-dark) 100%);
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.35rem;
+        }
+
+        .card-subtitle {
+            color: var(--color-text-light);
+            font-size: 0.9375rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-dark);
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .input {
+            width: 100%;
+            background: var(--color-white);
+            border: 2px solid var(--color-light-gray);
+            padding: 0.9rem 1rem;
+            color: var(--color-text);
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input:hover {
+            border-color: var(--color-text-light);
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--color-red);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.12);
+        }
+
+        .input::placeholder {
+            color: var(--color-text-light);
+        }
+
+        .btn {
+            background: var(--color-red);
+            color: var(--color-white);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            min-height: 56px;
+        }
+
+        .btn:hover {
+            background: #B71C1C;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid var(--color-dark);
+            outline-offset: 2px;
+        }
+
+        .btn:disabled {
+            background: var(--color-light-gray);
+            color: var(--color-text-light);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ===== STATUS RESULTS ===== */
+        .status-card {
+            background: var(--color-background);
+            border-left: 5px solid var(--color-blue);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: var(--font-heading);
+            margin-bottom: 1rem;
+        }
+
+        .status-received { background: var(--color-blue); color: var(--color-white); }
+        .status-diagnosing { background: var(--color-yellow); color: var(--color-dark); }
+        .status-repairing { background: var(--color-red); color: var(--color-white); }
+        .status-testing { background: var(--color-dark); color: var(--color-white); }
+        .status-ready { background: #43A047; color: var(--color-white); }
+        .status-completed { background: var(--color-light-gray); color: var(--color-text); }
+
+        .status-info {
+            display: grid;
+            gap: 0.25rem;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 1rem;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid var(--color-light-gray);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--color-text-light);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            color: var(--color-dark);
+            font-weight: 500;
+        }
+
+        /* ===== ADVANTAGES ===== */
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.375rem, 3.5vw, 1.75rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 1.5rem;
+        }
+
+        .advantages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .advantage {
+            background: var(--color-white);
+            padding: 1.5rem;
+            border-top: 4px solid var(--color-blue);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .advantage:nth-child(2) { border-top-color: var(--color-yellow); }
+        .advantage:nth-child(3) { border-top-color: var(--color-red); }
+        .advantage:nth-child(4) { border-top-color: var(--color-dark); }
+
+        .advantage:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .advantage-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            background: var(--color-background);
+            margin-bottom: 1rem;
+        }
+
+        .advantage-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--color-dark);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .advantage-title {
+            font-family: var(--font-heading);
+            font-size: 1.0625rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.35rem;
+        }
+
+        .advantage-text {
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            font-weight: 300;
+        }
+
+        /* ===== CONTACTS ===== */
+        .contacts {
+            background: var(--color-dark);
+            color: var(--color-white);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contacts::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg,
+                var(--color-red) 0%, var(--color-red) 33%,
+                var(--color-blue) 33%, var(--color-blue) 66%,
+                var(--color-yellow) 66%, var(--color-yellow) 100%);
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.9rem;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .contact-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--color-white);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .contact-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.6;
+            margin-bottom: 0.15rem;
+        }
+
+        .contact-value {
+            font-weight: 500;
+            font-size: 0.9375rem;
+            line-height: 1.4;
+        }
+
+        .contact-value a {
+            color: var(--color-white);
+            text-decoration: none;
+        }
+
+        .contact-value a:hover {
+            color: var(--color-yellow);
+        }
+
+        /* ===== MAP ===== */
+        .map-section {
+            margin-bottom: 3rem;
+        }
+
+        .map-wrap {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-top: 4px solid var(--color-red);
+            overflow: hidden;
+        }
+
+        .map-wrap iframe {
+            display: block;
+            width: 100%;
+            height: 420px;
+            border: 0;
+        }
+
+        .map-note {
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--color-light-gray);
+        }
+
+        .map-address {
+            font-weight: 500;
+            color: var(--color-dark);
+            font-size: 0.9375rem;
+        }
+
+        .map-address span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.15rem;
+        }
+
+        .map-link {
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--color-red);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+
+        .map-link:hover {
+            border-bottom-color: var(--color-red);
+        }
+
+        /* ===== EMPTY / LOADING ===== */
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--color-text-light);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--color-light-gray);
+            fill: none;
+            stroke-width: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-white);
+            border-top: 1px solid var(--color-light-gray);
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 0.8125rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        /* ===== MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .hero-stripes { width: 140px; }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 2.5rem 0 3rem;
+            }
+
+            .hero-stripes {
+                width: 90px;
+                opacity: 0.6;
+            }
+
+            .stripe-1 { width: 40px; }
+            .stripe-2 { right: 35px; width: 26px; }
+            .stripe-3 { right: 62px; width: 18px; }
+
+            .track-card {
+                padding: 1.75rem 1.25rem;
+            }
+
+            .track-card::before { width: 5px; }
+
+            .info-row {
+                grid-template-columns: 1fr;
+                gap: 0.15rem;
+                padding: 0.6rem 0;
+            }
+
+            .info-label { font-size: 0.75rem; }
+
+            .contacts {
+                padding: 2rem 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo { font-size: 1.0625rem; }
+            .logo-icon { width: 36px; height: 36px; }
+            .header-phone { font-size: 0.9375rem; }
+
+            .hero-stripes { display: none; }
+
+            .btn { font-size: 0.9375rem; }
+
+            .advantages {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top-bar"></div>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21.7 18.6l-6.4-6.4c.5-1.2.7-2.4.6-3.7-.1-1.2-.6-2.4-1.4-3.4l-.5-.5-2.6 2.6 1.3 1.3c.2.2.2.5 0 .7l-1.4 1.4c-.2.2-.5.2-.7 0L9.3 9.3l-2.6 2.6.5.5c1 .8 2.1 1.3 3.4 1.4 1.2.1 2.5-.1 3.7-.6l6.4 6.4c.2.2.5.2.7 0l2.3-2.3c.2-.2.2-.5 0-.7zM3.4 6.3l3.3-3.3c.4-.4 1-.4 1.4 0l2.4 2.4-4.7 4.7-2.4-2.4c-.4-.4-.4-1 0-1.4z"/></svg>
+                    </div>
+                    <span>Ремонт Инструмента</span>
+                </div>
+                <a href="tel:+79301140762" class="header-phone">+7 (930) 114-07-62</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-stripes">
+            <div class="hero-stripe stripe-1"></div>
+            <div class="hero-stripe stripe-2"></div>
+            <div class="hero-stripe stripe-3"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <span class="hero-badge">Бензо и электро инструмент</span>
+                <h1 class="hero-title">Профессиональный<br>ремонт <span class="accent">инструмента</span></h1>
+                <p class="hero-subtitle">Диагностика, ремонт и обслуживание. Работаем с любой сложностью — от бытового до профессионального инструмента.</p>
+                <div class="stripe-band">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="container">
+            <div id="root"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2026 Ремонт Бензо и Электро Инструмента. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpUn1ch7sI1vNWnrX4HMG024J3vfmJHXQ",
+            authDomain: "repair-tracker-e8486.firebaseapp.com",
+            databaseURL: "https://repair-tracker-e8486-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "repair-tracker-e8486",
+            storageBucket: "repair-tracker-e8486.firebasestorage.app",
+            messagingSenderId: "967280277566",
+            appId: "1:967280277566:web:bccbba44dc9ecf4ad6396f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const STATUS_LABELS = {
+            received: 'Принят',
+            diagnosing: 'Диагностика',
+            repairing: 'Ремонт',
+            testing: 'Тестирование',
+            ready: 'Готов к выдаче',
+            completed: 'Выдан'
+        };
+
+        function App() {
+            const [phone, setPhone] = useState('');
+            const [orders, setOrders] = useState([]);
+            const [searched, setSearched] = useState(false);
+            const [loading, setLoading] = useState(false);
+
+            const handleSearch = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+
+                try {
+                    const snapshot = await db.collection('orders')
+                        .where('phone', '==', phone)
+                        .get();
+
+                    const foundOrders = [];
+                    snapshot.forEach(doc => {
+                        foundOrders.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    setOrders(foundOrders);
+                    setSearched(true);
+                } catch (error) {
+                    console.error('Error fetching orders:', error);
+                    setOrders([]);
+                    setSearched(true);
+                }
+
+                setLoading(false);
+            };
+
+            return (
+                <>
+                    <div className="track-card">
+                        <h2 className="card-title">Отследить заказ</h2>
+                        <p className="card-subtitle">Введите номер телефона, указанный при оформлении заказа</p>
+
+                        <form onSubmit={handleSearch}>
+                            <div className="form-group">
+                                <label className="label" htmlFor="phone">Номер телефона</label>
+                                <input
+                                    id="phone"
+                                    type="tel"
+                                    className="input"
+                                    placeholder="+7 (___) ___-__-__"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                    aria-required="true"
+                                />
+                            </div>
+
+                            <button type="submit" className="btn" disabled={loading}>
+                                {loading ? 'Поиск...' : 'Найти заказ'}
+                            </button>
+                        </form>
+
+                        {loading && (
+                            <div className="loading">
+                                <p>Поиск заказов...</p>
+                            </div>
+                        )}
+
+                        {searched && !loading && orders.length === 0 && (
+                            <div className="empty-state">
+                                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                                <p>Заказы с таким номером телефона не найдены</p>
+                            </div>
+                        )}
+
+                        {orders.map(order => (
+                            <div key={order.id} className="status-card">
+                                <span className={`status-badge status-${order.status}`}>
+                                    {STATUS_LABELS[order.status]}
+                                </span>
+
+                                <div className="status-info">
+                                    <div className="info-row">
+                                        <span className="info-label">Номер заказа</span>
+                                        <span className="info-value">#{order.id.substring(0, 12)}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Инструмент</span>
+                                        <span className="info-value">{order.device}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Неисправность</span>
+                                        <span className="info-value">{order.issue}</span>
+                                    </div>
+                                    {order.estimatedCost && (
+                                        <div className="info-row">
+                                            <span className="info-label">Стоимость</span>
+                                            <span className="info-value">{order.estimatedCost} ₽</span>
+                                        </div>
+                                    )}
+                                    <div className="info-row">
+                                        <span className="info-label">Дата приема</span>
+                                        <span className="info-value">
+                                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString('ru-RU') : '-'}
+                                        </span>
+                                    </div>
+                                    {order.notes && (
+                                        <div className="info-row">
+                                            <span className="info-label">Примечания</span>
+                                            <span className="info-value">{order.notes}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <h2 className="section-title">Почему выбирают нас</h2>
+
+                    <div className="advantages">
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1z"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Опыт</h3>
+                            <p className="advantage-text">Ремонт бензо и электро инструмента любой сложности и всех популярных брендов.</p>
+                        </div>
+
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Сроки</h3>
+                            <p className="advantage-text">Диагностика в день обращения. Большинство ремонтов выполняем как можно быстрее.</p>
+                        </div>
+
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Гарантия</h3>
+                            <p className="advantage-text">На все выполненные работы и установленные запчасти предоставляем гарантию.</p>
+                        </div>
+
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Честная цена</h3>
+                            <p className="advantage-text">Согласуем стоимость до начала работ. Никаких скрытых доплат после ремонта.</p>
+                        </div>
+                    </div>
+
+                    <div className="map-section">
+                        <h2 className="section-title">Как нас найти</h2>
+                        <div className="map-wrap">
+                            <iframe
+                                src="https://yandex.ru/map-widget/v1/?ll=39.84142%2C57.65993&z=17&pt=39.84142,57.65993,pm2rdm"
+                                title="Карта: г. Ярославль, Базовая улица, 2"
+                                loading="lazy"
+                                allowFullScreen
+                            ></iframe>
+                            <div className="map-note">
+                                <div className="map-address">
+                                    <span>Наш адрес</span>
+                                    г. Ярославль, Базовая улица, 2
+                                </div>
+                                <a
+                                    className="map-link"
+                                    href="https://yandex.ru/maps/?ll=39.84142%2C57.65993&z=17&pt=39.84142,57.65993"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Открыть в Яндекс Картах →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="contacts">
+                        <div className="contacts-grid">
+                            <div className="contact-item">
+                                <div className="contact-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.6A2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8 9.6a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>
+                                </div>
+                                <div>
+                                    <div className="contact-label">Телефон</div>
+                                    <div className="contact-value"><a href="tel:+79301140762">+7 (930) 114-07-62</a></div>
+                                </div>
+                            </div>
+
+                            <div className="contact-item">
+                                <div className="contact-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                </div>
+                                <div>
+                                    <div className="contact-label">Адрес</div>
+                                    <div className="contact-value">г. Ярославль, Базовая улица, 2</div>
+                                </div>
+                            </div>
+
+                            <div className="contact-item">
+                                <div className="contact-icon">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                                </div>
+                                <div>
+                                    <div className="contact-label">Режим работы</div>
+                                    <div className="contact-value">Пн–Пт: 9:00 – 19:00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Админ-Панель — Ремонт Инструмента</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-red: #D32F2F;
+            --color-blue: #0097A7;
+            --color-yellow: #F9A825;
+            --color-dark: #37474F;
+            --color-background: #ECEFF1;
+            --color-white: #FFFFFF;
+            --color-light-gray: #CFD8DC;
+            --color-text: #263238;
+            --color-text-light: #546E7A;
+            --font-heading: 'Oswald', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Страница скрыта, пока не подтверждена авторизация.
+           Снимается классом .auth-ok — так содержимое не мелькает
+           до срабатывания проверки. */
+        html { visibility: hidden; }
+        html.auth-ok { visibility: visible; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app {
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--color-white);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--color-red) 0%,
+                var(--color-red) 33%,
+                var(--color-blue) 33%,
+                var(--color-blue) 66%,
+                var(--color-yellow) 66%,
+                var(--color-yellow) 100%
+            );
+        }
+
+        .header-title {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card {
+            background: var(--color-white);
+            padding: 2.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(180deg,
+                var(--color-red) 0%,
+                var(--color-red) 25%,
+                var(--color-blue) 25%,
+                var(--color-blue) 50%,
+                var(--color-yellow) 50%,
+                var(--color-yellow) 75%,
+                var(--color-dark) 75%,
+                var(--color-dark) 100%
+            );
+        }
+
+        .card-header { margin-bottom: 2rem; }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .card-subtitle {
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            font-weight: 300;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+
+        .label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-dark);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input, .textarea, .select {
+            width: 100%;
+            background: var(--color-white);
+            border: 2px solid var(--color-light-gray);
+            border-radius: 0;
+            padding: 1rem;
+            color: var(--color-text);
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: all 0.2s ease;
+        }
+
+        .input:hover, .textarea:hover, .select:hover {
+            border-color: var(--color-text-light);
+        }
+
+        .input:focus, .textarea:focus, .select:focus {
+            outline: none;
+            border-color: var(--color-red);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+        }
+
+        .textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23546E7A' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        .btn {
+            background: var(--color-red);
+            color: var(--color-white);
+            border: none;
+            border-radius: 0;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            min-height: 56px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: #B71C1C;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn:focus {
+            outline: 3px solid var(--color-dark);
+            outline-offset: 2px;
+        }
+
+        .btn:disabled {
+            background: var(--color-light-gray);
+            color: var(--color-text-light);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--color-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #263238;
+        }
+
+        .btn-small {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            width: auto;
+            min-height: auto;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: var(--font-heading);
+        }
+
+        .status-received { background: var(--color-blue); color: var(--color-white); }
+        .status-diagnosing { background: var(--color-yellow); color: var(--color-dark); }
+        .status-repairing { background: var(--color-red); color: var(--color-white); }
+        .status-testing { background: var(--color-dark); color: var(--color-white); }
+        .status-ready { background: #43A047; color: var(--color-white); }
+        .status-completed { background: var(--color-light-gray); color: var(--color-text); }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
+
+        .search-input { width: 100%; }
+
+        .orders-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .order-card {
+            background: var(--color-white);
+            border-left: 6px solid var(--color-blue);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .order-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            transform: translateX(4px);
+            border-left-color: var(--color-red);
+        }
+
+        .order-card:focus {
+            outline: 3px solid var(--color-dark);
+            outline-offset: 2px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .order-details {
+            display: grid;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .order-device {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--color-dark);
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+        }
+
+        .order-phone { color: var(--color-text-light); font-weight: 500; }
+        .order-issue { color: var(--color-text-light); }
+
+        .order-cost {
+            color: var(--color-red);
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: var(--font-heading);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        .error-message {
+            background: rgba(211, 47, 47, 0.1);
+            border: 2px solid var(--color-red);
+            color: var(--color-red);
+            padding: 1rem;
+            border-radius: 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        // ============================================================
+        // ЗАЩИТА СТРАНИЦЫ. Выполняется до отрисовки контента.
+        // Пока проверка не пройдена — страница остаётся невидимой.
+        // ============================================================
+        (function() {
+            var SESSION_KEY = 'rt_admin_session';
+            var SESSION_TTL = 30 * 60 * 1000; // 30 минут неактивности
+            var raw = sessionStorage.getItem(SESSION_KEY);
+
+            function deny() {
+                try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+                window.location.replace('login-admin.html');
+            }
+
+            if (!raw) { deny(); return; }
+
+            try {
+                var s = JSON.parse(raw);
+                if (!s || s.ok !== true || typeof s.ts !== 'number') { deny(); return; }
+                if (Date.now() - s.ts >= SESSION_TTL) { deny(); return; }
+
+                // Продлеваем сессию активности
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ok: true, ts: Date.now() }));
+
+                // Снимаем блокировку отображения и запрещаем кэширование
+                document.documentElement.className += ' auth-ok';
+            } catch (e) {
+                deny();
+            }
+        })();
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpUn1ch7sI1vNWnrX4HMG024J3vfmJHXQ",
+            authDomain: "repair-tracker-e8486.firebaseapp.com",
+            projectId: "repair-tracker-e8486",
+            storageBucket: "repair-tracker-e8486.firebasestorage.app",
+            messagingSenderId: "967280277566",
+            appId: "1:967280277566:web:bccbba44dc9ecf4ad6396f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const STATUS_LABELS = {
+            received: 'Принят',
+            diagnosing: 'Диагностика',
+            repairing: 'Ремонт',
+            testing: 'Тестирование',
+            ready: 'Готов',
+            completed: 'Выдан'
+        };
+
+        function App() {
+            return (
+                <div className="app">
+                    <div className="container">
+                        <AdminView />
+                    </div>
+                </div>
+            );
+        }
+
+        function AdminView() {
+            const [view, setView] = useState('list');
+            const [orders, setOrders] = useState([]);
+            const [filteredOrders, setFilteredOrders] = useState([]);
+            const [selectedOrder, setSelectedOrder] = useState(null);
+            const [searchPhone, setSearchPhone] = useState('');
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                loadOrders();
+            }, []);
+
+            useEffect(() => {
+                if (searchPhone.trim() === '') {
+                    setFilteredOrders(orders);
+                } else {
+                    const filtered = orders.filter(o => o.phone && o.phone.includes(searchPhone));
+                    setFilteredOrders(filtered);
+                }
+            }, [searchPhone, orders]);
+
+            const loadOrders = async () => {
+                setLoading(true);
+                try {
+                    const snapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
+                    const allOrders = [];
+                    snapshot.forEach(doc => {
+                        allOrders.push({ id: doc.id, ...doc.data() });
+                    });
+                    setOrders(allOrders);
+                    setFilteredOrders(allOrders);
+                } catch (error) {
+                    console.error('Error loading orders:', error);
+                }
+                setLoading(false);
+            };
+
+            const handleEdit = (order) => {
+                setSelectedOrder(order);
+                setView('edit');
+            };
+
+            const handleCreate = () => {
+                setSelectedOrder({
+                    phone: '',
+                    device: '',
+                    issue: '',
+                    status: 'received',
+                    notes: '',
+                    estimatedCost: ''
+                });
+                setView('create');
+            };
+
+            const handleBack = () => {
+                setView('list');
+                setSelectedOrder(null);
+                loadOrders();
+            };
+
+            const handleLogout = () => {
+                try { sessionStorage.removeItem('rt_admin_session'); } catch (e) {}
+                window.location.replace('login-admin.html');
+            };
+
+            return (
+                <>
+                    {view === 'list' && (
+                        <>
+                            <div className="header">
+                                <h1 className="header-title">Заказы ({filteredOrders.length})</h1>
+
+                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <div className="search-box">
+                                        <input
+                                            type="text"
+                                            className="input search-input"
+                                            placeholder="Поиск по телефону..."
+                                            value={searchPhone}
+                                            onChange={(e) => setSearchPhone(e.target.value)}
+                                            aria-label="Поиск по телефону"
+                                        />
+                                    </div>
+
+                                    <button className="btn btn-small" onClick={handleCreate}>
+                                        + Новый
+                                    </button>
+
+                                    <button className="btn btn-secondary btn-small" onClick={handleLogout}>
+                                        Выход
+                                    </button>
+                                </div>
+                            </div>
+
+                            {loading ? (
+                                <div className="empty-state">
+                                    <p>Загрузка...</p>
+                                </div>
+                            ) : filteredOrders.length === 0 ? (
+                                <div className="empty-state">
+                                    <p>{searchPhone ? 'Не найдено' : 'Нет заказов'}</p>
+                                </div>
+                            ) : (
+                                <div className="orders-grid">
+                                    {filteredOrders.map(order => (
+                                        <div
+                                            key={order.id}
+                                            className="order-card"
+                                            onClick={() => handleEdit(order)}
+                                            role="button"
+                                            tabIndex="0"
+                                            onKeyPress={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    handleEdit(order);
+                                                }
+                                            }}
+                                        >
+                                            <div className="order-header">
+                                                <div>
+                                                    <div className="order-id">#{order.id.substring(0, 12)}</div>
+                                                    <span className={`status-badge status-${order.status}`}>
+                                                        {STATUS_LABELS[order.status]}
+                                                    </span>
+                                                </div>
+                                                {order.estimatedCost && (
+                                                    <div className="order-cost">
+                                                        {order.estimatedCost} ₽
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="order-details">
+                                                <div className="order-device">{order.device}</div>
+                                                <div className="order-phone">{order.phone}</div>
+                                                <div className="order-issue">{order.issue}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {(view === 'edit' || view === 'create') && (
+                        <OrderForm
+                            order={selectedOrder}
+                            onBack={handleBack}
+                            mode={view}
+                        />
+                    )}
+                </>
+            );
+        }
+
+        function OrderForm({ order, onBack, mode }) {
+            const [formData, setFormData] = useState(order);
+            const [error, setError] = useState('');
+            const [saving, setSaving] = useState(false);
+
+            const handleChange = (field, value) => {
+                setFormData({ ...formData, [field]: value });
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+
+                if (!formData.phone || !formData.device || !formData.issue) {
+                    setError('Заполните все обязательные поля');
+                    return;
+                }
+
+                setSaving(true);
+
+                try {
+                    if (mode === 'create') {
+                        await db.collection('orders').add({
+                            ...formData,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        });
+                    } else {
+                        await db.collection('orders').doc(order.id).update({
+                            ...formData,
+                            updatedAt: new Date().toISOString()
+                        });
+                    }
+                    onBack();
+                } catch (error) {
+                    console.error('Error saving order:', error);
+                    setError('Ошибка при сохранении');
+                    setSaving(false);
+                }
+            };
+
+            return (
+                <>
+                    <button className="btn btn-secondary btn-small" onClick={onBack} style={{ marginBottom: '2rem', width: 'auto' }}>
+                        ← Назад
+                    </button>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">
+                                {mode === 'create' ? 'Новый Заказ' : `Заказ #${order.id.substring(0, 12)}`}
+                            </h2>
+                        </div>
+
+                        {error && <div className="error-message">{error}</div>}
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="label" htmlFor="phone">Телефон *</label>
+                                <input
+                                    id="phone"
+                                    type="tel"
+                                    className="input"
+                                    placeholder="+7 (___) ___-__-__"
+                                    value={formData.phone}
+                                    onChange={(e) => handleChange('phone', e.target.value)}
+                                    required
+                                    aria-required="true"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label" htmlFor="device">Инструмент *</label>
+                                <input
+                                    id="device"
+                                    type="text"
+                                    className="input"
+                                    placeholder="Makita HP457D"
+                                    value={formData.device}
+                                    onChange={(e) => handleChange('device', e.target.value)}
+                                    required
+                                    aria-required="true"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label" htmlFor="issue">Проблема *</label>
+                                <textarea
+                                    id="issue"
+                                    className="textarea"
+                                    placeholder="Описание..."
+                                    value={formData.issue}
+                                    onChange={(e) => handleChange('issue', e.target.value)}
+                                    required
+                                    aria-required="true"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label" htmlFor="status">Статус</label>
+                                <select
+                                    id="status"
+                                    className="select"
+                                    value={formData.status}
+                                    onChange={(e) => handleChange('status', e.target.value)}
+                                >
+                                    {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                                        <option key={value} value={value}>{label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label" htmlFor="cost">Стоимость (₽)</label>
+                                <input
+                                    id="cost"
+                                    type="number"
+                                    className="input"
+                                    placeholder="5000"
+                                    value={formData.estimatedCost}
+                                    onChange={(e) => handleChange('estimatedCost', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="label" htmlFor="notes">Примечания</label>
+                                <textarea
+                                    id="notes"
+                                    className="textarea"
+                                    placeholder="Доп. информация..."
+                                    value={formData.notes}
+                                    onChange={(e) => handleChange('notes', e.target.value)}
+                                />
+                            </div>
+
+                            <button type="submit" className="btn" disabled={saving}>
+                                {saving ? 'Сохранение...' : mode === 'create' ? 'Создать' : 'Сохранить'}
+                            </button>
+                        </form>
+                    </div>
+                </>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

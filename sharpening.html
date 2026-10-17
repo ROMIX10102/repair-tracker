@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заточка цепей — Ярославль</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-red: #D32F2F;
+            --color-blue: #0097A7;
+            --color-yellow: #F9A825;
+            --color-dark: #37474F;
+            --color-background: #ECEFF1;
+            --color-white: #FFFFFF;
+            --color-light-gray: #CFD8DC;
+            --color-text: #263238;
+            --color-text-light: #546E7A;
+
+            --font-heading: 'Oswald', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--color-red) 0%, var(--color-red) 25%,
+                var(--color-blue) 25%, var(--color-blue) 50%,
+                var(--color-yellow) 50%, var(--color-yellow) 75%,
+                var(--color-dark) 75%, var(--color-dark) 100%);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--color-red);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            clip-path: polygon(18% 0%, 100% 0%, 82% 100%, 0% 100%);
+        }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--color-white);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .header-phone {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s ease;
+        }
+
+        .header-phone:hover {
+            color: var(--color-red);
+        }
+
+        .cabinet-btn {
+            font-family: var(--font-heading);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--color-white);
+            background: var(--color-dark);
+            text-decoration: none;
+            padding: 0.6rem 1.1rem;
+            white-space: nowrap;
+            transition: background 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .cabinet-btn:hover {
+            background: var(--color-red);
+        }
+
+        .cabinet-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            position: relative;
+            background: var(--color-white);
+            padding: 3.5rem 0 4rem;
+            overflow: hidden;
+            border-bottom: 1px solid var(--color-light-gray);
+        }
+
+        .hero-stripes {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 220px;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .hero-stripe {
+            position: absolute;
+            top: -20%;
+            height: 140%;
+            transform: rotate(18deg);
+            transform-origin: top right;
+        }
+
+        .stripe-1 { right: 0; width: 60px; background: var(--color-red); opacity: 0.15; }
+        .stripe-2 { right: 55px; width: 40px; background: var(--color-blue); opacity: 0.15; }
+        .stripe-3 { right: 100px; width: 28px; background: var(--color-yellow); opacity: 0.15; }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 720px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--color-dark);
+            color: var(--color-white);
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 0.4rem 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 6vw, 3.25rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            line-height: 1.08;
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
+            margin-bottom: 1rem;
+        }
+
+        .hero-title .accent {
+            color: var(--color-red);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2.2vw, 1.25rem);
+            color: var(--color-text-light);
+            font-weight: 300;
+            max-width: 560px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-price {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--color-yellow);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-price-note {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        .stripe-band {
+            display: flex;
+            height: 6px;
+            margin-top: 2rem;
+            max-width: 320px;
+        }
+
+        .stripe-band span {
+            flex: 1;
+        }
+
+        .stripe-band span:nth-child(1) { background: var(--color-red); }
+        .stripe-band span:nth-child(2) { background: var(--color-blue); }
+        .stripe-band span:nth-child(3) { background: var(--color-yellow); }
+        .stripe-band span:nth-child(4) { background: var(--color-dark); }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.375rem, 3.5vw, 1.75rem);
+            font-weight: 700;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .section-note {
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            font-weight: 300;
+        }
+
+        /* ===== ADVANTAGES ===== */
+        .advantages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .advantage {
+            background: var(--color-white);
+            padding: 1.5rem;
+            border-top: 4px solid var(--color-blue);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .advantage:nth-child(2) { border-top-color: var(--color-yellow); }
+        .advantage:nth-child(3) { border-top-color: var(--color-red); }
+
+        .advantage:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .advantage-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            background: var(--color-background);
+            margin-bottom: 1rem;
+        }
+
+        .advantage-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--color-dark);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .advantage-title {
+            font-family: var(--font-heading);
+            font-size: 1.0625rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.35rem;
+        }
+
+        .advantage-text {
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+            font-weight: 300;
+        }
+
+        /* ===== WORKS FEED ===== */
+        .works {
+            margin-bottom: 3rem;
+        }
+
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .work-card {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-top: 4px solid var(--color-yellow);
+        }
+
+        .work-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .work-photo {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: var(--color-background);
+            overflow: hidden;
+            cursor: zoom-in;
+        }
+
+        .work-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.35s ease;
+        }
+
+        .work-card:hover .work-photo img {
+            transform: scale(1.04);
+        }
+
+        .work-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .work-title {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            line-height: 1.25;
+        }
+
+        .work-text {
+            color: var(--color-text-light);
+            font-size: 0.9375rem;
+            font-weight: 300;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .work-date {
+            margin-top: auto;
+            padding-top: 0.6rem;
+            border-top: 1px solid var(--color-light-gray);
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 20, 24, 0.92);
+            z-index: 1000;
+            display: grid;
+            place-items: center;
+            padding: 2rem 1rem;
+            cursor: zoom-out;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .lightbox img {
+            max-width: min(1100px, 100%);
+            max-height: 88vh;
+            object-fit: contain;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: var(--color-white);
+            width: 44px;
+            height: 44px;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: background 0.2s ease;
+        }
+
+        .lightbox-close:hover {
+            background: var(--color-red);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ===== MAP ===== */
+        .map-section {
+            margin-bottom: 3rem;
+        }
+
+        .map-wrap {
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-top: 4px solid var(--color-red);
+            overflow: hidden;
+        }
+
+        .map-wrap iframe {
+            display: block;
+            width: 100%;
+            height: 420px;
+            border: 0;
+        }
+
+        .map-note {
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--color-light-gray);
+        }
+
+        .map-address {
+            font-weight: 500;
+            color: var(--color-dark);
+            font-size: 0.9375rem;
+        }
+
+        .map-address span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.15rem;
+        }
+
+        .map-link {
+            font-family: var(--font-heading);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--color-red);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+
+        .map-link:hover {
+            border-bottom-color: var(--color-red);
+        }
+
+        /* ===== CONTACTS ===== */
+        .contacts {
+            background: var(--color-dark);
+            color: var(--color-white);
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contacts::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg,
+                var(--color-red) 0%, var(--color-red) 33%,
+                var(--color-blue) 33%, var(--color-blue) 66%,
+                var(--color-yellow) 66%, var(--color-yellow) 100%);
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.9rem;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .contact-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--color-white);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .contact-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.6;
+            margin-bottom: 0.15rem;
+        }
+
+        .contact-value {
+            font-weight: 500;
+            font-size: 0.9375rem;
+            line-height: 1.4;
+        }
+
+        .contact-value a {
+            color: var(--color-white);
+            text-decoration: none;
+        }
+
+        .contact-value a:hover {
+            color: var(--color-yellow);
+        }
+
+        /* ===== STATES ===== */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--color-text-light);
+            background: var(--color-white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--color-light-gray);
+            fill: none;
+            stroke-width: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        .more-wrap {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .more-btn {
+            background: var(--color-dark);
+            color: var(--color-white);
+            border: none;
+            padding: 0.9rem 2rem;
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .more-btn:hover {
+            background: var(--color-red);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-white);
+            border-top: 1px solid var(--color-light-gray);
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 0.8125rem;
+            color: var(--color-text-light);
+            font-weight: 300;
+        }
+
+        /* ===== MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .hero-stripes { width: 140px; }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 2.5rem 0 3rem;
+            }
+
+            .hero-stripes {
+                width: 90px;
+                opacity: 0.6;
+            }
+
+            .stripe-1 { width: 40px; }
+            .stripe-2 { right: 35px; width: 26px; }
+            .stripe-3 { right: 62px; width: 18px; }
+
+            .works-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contacts {
+                padding: 2rem 1.25rem;
+            }
+
+            .map-wrap iframe {
+                height: 320px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .logo { font-size: 1.0625rem; }
+            .logo-icon { width: 36px; height: 36px; }
+
+            .header-content {
+                flex-wrap: wrap;
+                row-gap: 0.75rem;
+            }
+
+            .header-right {
+                gap: 0.75rem;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .header-phone { font-size: 0.9375rem; }
+
+            .cabinet-btn {
+                font-size: 0.75rem;
+                padding: 0.55rem 0.85rem;
+            }
+
+            .hero-stripes { display: none; }
+
+            .advantages {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top-bar"></div>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21.7 18.6l-6.4-6.4c.5-1.2.7-2.4.6-3.7-.1-1.2-.6-2.4-1.4-3.4l-.5-.5-2.6 2.6 1.3 1.3c.2.2.2.5 0 .7l-1.4 1.4c-.2.2-.5.2-.7 0L9.3 9.3l-2.6 2.6.5.5c1 .8 2.1 1.3 3.4 1.4 1.2.1 2.5-.1 3.7-.6l6.4 6.4c.2.2.5.2.7 0l2.3-2.3c.2-.2.2-.5 0-.7zM3.4 6.3l3.3-3.3c.4-.4 1-.4 1.4 0l2.4 2.4-4.7 4.7-2.4-2.4c-.4-.4-.4-1 0-1.4z"/></svg>
+                    </div>
+                    <span>Ремонт Инструмента</span>
+                </a>
+
+                <div class="header-right">
+                    <a href="tel:+79301140762" class="header-phone">+7 (930) 114-07-62</a>
+                    <a href="services.html" class="cabinet-btn" style="background: var(--color-blue);">
+                        <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                        Услуги
+                    </a>
+                    <a href="cabinet.html" class="cabinet-btn">
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Личный кабинет
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-stripes">
+            <div class="hero-stripe stripe-1"></div>
+            <div class="hero-stripe stripe-2"></div>
+            <div class="hero-stripe stripe-3"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <span class="hero-badge">Профессиональная заточка</span>
+                <h1 class="hero-title">Заточка <span class="accent">цепей</span><br>для бензопил</h1>
+                <p class="hero-subtitle">Быстро, качественно, с использованием профессионального оборудования. Правильный угол для каждого типа цепи.</p>
+                <div class="hero-price">250₽</div>
+                <p class="hero-price-note">Фиксированная стоимость за любую цепь</p>
+                <div class="stripe-band">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="container">
+            <div id="root"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2026 Ремонт Бензо и Электро Инструмента. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpUn1ch7sI1vNWnrX4HMG024J3vfmJHXQ",
+            authDomain: "repair-tracker-e8486.firebaseapp.com",
+            databaseURL: "https://repair-tracker-e8486-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "repair-tracker-e8486",
+            storageBucket: "repair-tracker-e8486.firebasestorage.app",
+            messagingSenderId: "967280277566",
+            appId: "1:967280277566:web:bccbba44dc9ecf4ad6396f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        const PAGE_SIZE = 6;
+
+        function App() {
+            const [works, setWorks] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState('');
+            const [visible, setVisible] = useState(PAGE_SIZE);
+            const [lightbox, setLightbox] = useState(null);
+
+            useEffect(() => {
+                let cancelled = false;
+
+                (async () => {
+                    try {
+                        const snapshot = await db.collection('works')
+                            .orderBy('createdAt', 'desc')
+                            .get();
+
+                        if (cancelled) return;
+
+                        const items = [];
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.category === 'sharpening') {
+                                items.push({ id: doc.id, ...data });
+                            }
+                        });
+                        setWorks(items);
+                    } catch (err) {
+                        console.error('Error loading works:', err);
+                        if (!cancelled) setError('Не удалось загрузить работы. Обновите страницу.');
+                    }
+                    if (!cancelled) setLoading(false);
+                })();
+
+                return () => { cancelled = true; };
+            }, []);
+
+            // Закрытие лайтбокса по Escape
+            const closeLightbox = useCallback(() => setLightbox(null), []);
+
+            useEffect(() => {
+                if (!lightbox) return;
+                const onKey = (e) => { if (e.key === 'Escape') closeLightbox(); };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, [lightbox, closeLightbox]);
+
+            const shown = works.slice(0, visible);
+
+            return (
+                <>
+                    <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>Почему выбирают нас</h2>
+
+                    <div className="advantages">
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Быстро</h3>
+                            <p className="advantage-text">Заточка одной цепи занимает 15-20 минут. Можете подождать или оставить заявку.</p>
+                        </div>
+
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Качественно</h3>
+                            <p className="advantage-text">Используем профессиональное оборудование. Правильный угол заточки для каждого типа цепи.</p>
+                        </div>
+
+                        <div className="advantage">
+                            <div className="advantage-icon">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+                            </div>
+                            <h3 className="advantage-title">Доступно</h3>
+                            <p className="advantage-text">Фиксированная цена 250₽ за любую цепь. Никаких скрытых доплат.</p>
+                        </div>
+                    </div>
+
+                    <section className="works">
+                        <div className="section-head">
+                            <h2 className="section-title">Наши работы</h2>
+                            {works.length > 0 && (
+                                <span className="section-note">
+                                    {works.length} {plural(works.length, 'работа', 'работы', 'работ')}
+                                </span>
+                            )}
+                        </div>
+
+                        {loading && (
+                            <div className="loading">
+                                <p>Загрузка работ…</p>
+                            </div>
+                        )}
+
+                        {error && !loading && (
+                            <div className="empty-state">
+                                <p>{error}</p>
+                            </div>
+                        )}
+
+                        {!loading && !error && works.length === 0 && (
+                            <div className="empty-state">
+                                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                <p>Здесь скоро появятся фотографии выполненных работ</p>
+                            </div>
+                        )}
+
+                        {!loading && shown.length > 0 && (
+                            <>
+                                <div className="works-grid">
+                                    {shown.map(work => (
+                                        <article className="work-card" key={work.id}>
+                                            {work.photo && (
+                                                <div
+                                                    className="work-photo"
+                                                    onClick={() => setLightbox(work.photo)}
+                                                    role="button"
+                                                    tabIndex="0"
+                                                    aria-label="Открыть фото крупнее"
+                                                    onKeyPress={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault();
+                                                            setLightbox(work.photo);
+                                                        }
+                                                    }}
+                                                >
+                                                    <img
+                                                        src={work.photo}
+                                                        alt={work.title || 'Выполненная работа'}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <div className="work-body">
+                                                {work.title && (
+                                                    <h3 className="work-title">{work.title}</h3>
+                                                )}
+                                                {work.text && (
+                                                    <p className="work-text">{work.text}</p>
+                                                )}
+                                                {work.createdAt && (
+                                                    <div className="work-date">
+                                                        {formatDate(work.createdAt)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </article>
+                                    ))}
+                                </div>
+
+                                {visible < works.length && (
+                                    <div className="more-wrap">
+                                        <button
+                                            className="more-btn"
+                                            onClick={() => setVisible(v => v + PAGE_SIZE)}
+                                        >
+                                            Показать ещё
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </section>
+
+                    <div className="map-section">
+                        <h2 className="section-title" style={{ marginBottom: '1.5rem' }}>Как нас найти</h2>
+                        <div className="map-wrap">
+                            <iframe
+                                src="https://yandex.ru/map-widget/v1/?ll=39.84142%2C57.65993&z=17&pt=39.84142,57.65993,pm2rdm"
+                                title="Карта: г. Ярославль, Базовая улица, 2"
+                                loading="lazy"
+                                allowFullScreen
+                            ></iframe>
+                            <div className="map-note">
+                                <div className="map-address">
+                                    <span>Наш адрес</span>
+                                    г. Ярославль, Базовая улица, 2
+                                </div>
+                                <a
+                                    className="map-link"
+                                    href="https://yandex.ru/maps/?ll=39.84142%2C57.65993&z=17&pt=39.84142,57.65993"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Открыть в Яндекс Картах →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="contacts">
+                        <div className="contacts-grid">
+                            <div className="contact-item">
+                                <div className="contact-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.6A2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8 9.6a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>
+                                </div>
+                                <div>
+                                    <div className="contact-label">Телефон</div>
+                                    <div className="contact-value"><a href="tel:+79301140762">+7 (930) 114-07-62</a></div>
+                                </div>
+                            </div>
+
+                            <div className="contact-item">
+                                <div className="contact-icon">
+                                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                </div>
+                                <div>
+                                    <div className="contact-label">Адрес</div>
+                                    <div className="contact-value">г. Ярославль, Базовая улица, 2</div>
+                                </div>
+                            </div>
+
+                            <div className="contact-item">
+                                <div className="contact-icon">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                                </div>
+                                <div>
+                                    <div className="contact-label">Режим работы</div>
+                                    <div className="contact-value">Пн–Пт: 9:00 – 19:00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {lightbox && (
+                        <div className="lightbox" onClick={closeLightbox} role="dialog" aria-modal="true">
+                            <button className="lightbox-close" aria-label="Закрыть">×</button>
+                            <img src={lightbox} alt="Фото работы" onClick={(e) => e.stopPropagation()} />
+                        </div>
+                    )}
+                </>
+            );
+        }
+
+        function plural(n, one, few, many) {
+            const mod10 = n % 10;
+            const mod100 = n % 100;
+            if (mod10 === 1 && mod100 !== 11) return one;
+            if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+            return many;
+        }
+
+        function formatDate(value) {
+            try {
+                const d = new Date(value);
+                if (isNaN(d.getTime())) return '';
+                return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+            } catch (e) {
+                return '';
+            }
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
